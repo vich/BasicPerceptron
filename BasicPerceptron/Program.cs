@@ -1,52 +1,84 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace BasicPerceptron
 {
     class Program
     {
+        private const string TrainFile = "Train.txt";
+        private const string TestFile = "Test.txt";
+        private const int Samples = 10000;
+        private const int Neurons = 21;
+        private const double LearningRate = 1;
+        
         static void Main(string[] args)
         {
-            SamplesGenerator.Generate(10000, 10000);
+            SamplesGenerator samplesGenerator = new SamplesGenerator(Neurons);
             
-            var input = new int[,] { { 1, 0 }, { 1, 1 }, { 0, 1 }, { 0, 0 } };
-            int[] outputs = { 0, 1, 0, 0 };
+            if(!File.Exists(TrainFile))
+                samplesGenerator.GenerateSet(Samples, TrainFile);
+            if(!File.Exists(TestFile))
+                samplesGenerator.GenerateSet(Samples, TestFile);
 
-            var r = new Random();
+            var trainingSet = File.ReadAllLines(TrainFile);
 
-            double[] weights = { r.NextDouble(), r.NextDouble(), r.NextDouble() };
+            var input = new int[Samples,Neurons];
+            var outputs = new int[Samples];
+            for (var index = 0; index < trainingSet.Length; index++)
+            {
+                var splintedLine = trainingSet[index].Split(" ");
+                var strArr = splintedLine[0].ToCharArray();
+                var neuron = Array.ConvertAll(strArr, c => byte.Parse(c.ToString()));
+                for (var i = 0; i < neuron.Length; i++)
+                {
+                    input[index, i] = neuron[i];
+                }
 
-            const double learningRate = 1;
+                outputs[index] = byte.Parse(splintedLine[1]);
+            }
+
+            var random = new Random();
+            var weights = new double[Neurons];
+            for (var i = 0; i < Neurons; i++)
+            {
+                weights[i] = random.NextDouble();
+            }
+
             double totalError = 1;
-
+            var iteration = 1;
             while (totalError > 0.2)
             {
                 totalError = 0;
-                for (var i = 0; i < 4; i++)
+                for (var i = 0; i < Samples; i++)
                 {
-                    var output = CalculateOutput(input[i, 0], input[i, 1], weights);
+                    var output = CalculateOutput(input.GetRow(i), weights);
 
                     var error = outputs[i] - output;
 
-                    weights[0] += learningRate * error * input[i, 0];
-                    weights[1] += learningRate * error * input[i, 1];
-                    weights[2] += learningRate * error * 1;
+                    for (var j = 0; j < Neurons; j++)
+                    {
+                        weights[j] += LearningRate * error * input[i, j];
+                    }
 
                     totalError += Math.Abs(error);
+                    Console.WriteLine($"iteration={iteration++}, totalError={totalError}");
                 }
 
             }
 
             Console.WriteLine("Results:");
             for (var i = 0; i < 4; i++)
-                Console.WriteLine(CalculateOutput(input[i, 0], input[i, 1], weights));
+                Console.WriteLine(CalculateOutput(input.GetRow(i), weights));
 
             Console.ReadLine();
 
         }
 
-        private static int CalculateOutput(double input1, double input2, double[] weights)
+        private static int CalculateOutput(IEnumerable<int> inputs, IReadOnlyList<double> weights)
         {
-            var sum = input1 * weights[0] + input2 * weights[1] + 1 * weights[2];
+            var sum = inputs.Select((t, i) => t * weights[i]).Sum();
             return (sum >= 0) ? 1 : 0;
         }
     }

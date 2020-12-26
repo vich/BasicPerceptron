@@ -4,23 +4,25 @@ using System.IO;
 
 namespace BasicPerceptron
 {
-    public static class SamplesGenerator
+    public class SamplesGenerator
     {
-        private const string TrainFile = "Train.txt";
-        private const string TestFile = "Test.txt";
-        private const int BitsCount = 21;
-        private const int Minimum = 0;
-        private static readonly int Maximum = (int) Math.Pow(2, BitsCount);
+        private readonly int _bitsCount;
+        private readonly int _minimum;
+        private readonly int _maximum;
+        private readonly Random _random ;
 
-        private static readonly Random Random = new Random();
-
-        public static void Generate(int trainCount, int testCount)
+        public SamplesGenerator(int bitCount, int minimum = 0)
         {
-            var trainList = GenerateRandomList(trainCount);
-            var testList = GenerateRandomList(testCount);
-
-            WriteToFile(trainList, TrainFile);
-            WriteToFile(testList, TestFile);
+            _bitsCount = bitCount;
+            _minimum = minimum;
+            _maximum = (int) Math.Pow(2, _bitsCount);
+            _random = new Random();
+        }
+        
+        public void GenerateSet(int count, string fileName)
+        {
+            var trainList = GenerateRandomList(count);
+            WriteToFile(trainList, fileName);
         }
 
         private static void WriteToFile(IEnumerable<(int, bool)> data, string trainFile)
@@ -29,26 +31,27 @@ namespace BasicPerceptron
             {
                 foreach (var (number, mostlyOnes) in data)
                 {
+                    byte mostlyOnesByte = mostlyOnes ? 1 : 0;
                     var binFormat = Convert.ToString(number, 2);
-                    streamWriter.WriteLine($"{binFormat.PadLeft(15, '0')} {mostlyOnes}");
+                    streamWriter.WriteLine($"{binFormat.PadLeft(15, '0')} {mostlyOnesByte}");
                 }
             }
         }
 
-        private static IEnumerable<(int, bool)> GenerateRandomList(int count)
+        private IEnumerable<(int, bool)> GenerateRandomList(int count)
         {
             for (var i = 0; i < count; i++)
             {
-                var randomNumber = Random.Next(Minimum, Maximum);
+                var randomNumber = _random.Next(_minimum, _maximum);
                 var mostlyOnes = MostlyOnes(randomNumber);
                 yield return (randomNumber, mostlyOnes);
             }
         }
 
-        private static bool MostlyOnes(int num)
+        private bool MostlyOnes(int num)
         {
             var ones = CountSetBits(num);
-            return ones > (BitsCount + 1) / 2;
+            return ones > (_bitsCount + 1) / 2;
         }
 
         private static int CountSetBits(int n)
