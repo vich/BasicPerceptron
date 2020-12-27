@@ -9,7 +9,7 @@ namespace BasicPerceptron
     {
         private const string TrainFile = "Train.txt";
         private const string TestFile = "Test.txt";
-        private const int Samples = 500;
+        private const int Samples = 1000;
         private const int Neurons = 21;
         private const double LearningRate = 1;
         
@@ -48,8 +48,11 @@ namespace BasicPerceptron
 
             double totalError = 1;
             var iteration = 1;
-            while (totalError > 0.2 && iteration < 10000)
+            while (totalError > 0.2)
             {
+                if (iteration > 10000)
+                    break;
+
                 totalError = 0;
                 for (var i = 0; i < Samples; i++)
                 {
