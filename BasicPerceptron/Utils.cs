@@ -4,11 +4,10 @@ namespace BasicPerceptron
 {
     public static class Utils
     {
-        public static bool MostlyOnes(int num)
+        public static bool MostlyOnes(int num, int bitsCount)
         {
             var ones = CountSetBits(num);
-            var bitsCount = (int) Math.Floor(Math.Log10(num) + 1);
-            return ones > (bitsCount + 1) / 2;
+            return ones > bitsCount / 2;
         }
 
         private static int CountSetBits(int n)

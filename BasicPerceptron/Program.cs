@@ -12,36 +12,74 @@ namespace BasicPerceptron
 
         private const string TrainFile = "Train.txt";
         private const string TestFile = "Test.txt";
-        private const int Samples = 100;
+        private const int TrainSamples = 100;
+        private const int TestSamples = 1000000;
         private const int Neurons = 21;
         private const double LearningRate = 0.1;
         private const int Bias = 1;
+        private const bool OverrideSamples = true;
 
         #endregion Members
-
-
+        
         static void Main(string[] args)
         {
             GenerateSamples();
             var trainedWeights = TrainPerceptron();
-            
+            TestPerceptron(trainedWeights);
+
             Console.ReadLine();
+        }
+
+        private static void TestPerceptron(double[] weights)
+        {
+            var input = ReadData(TestFile, TestSamples, out var outputs);
+
+            var countWrongZeros = 0;
+            var countWrongOnes = 0;
+            var countExpectedZeros = 0;
+            var countExpectedOnes = 0;
+
+            foreach (var output in outputs)
+            {
+                if (output == 1)
+                    countExpectedOnes++;
+                else
+                    countExpectedZeros++;
+            }
+
+            for (var i = 0; i < TestSamples; i++)
+            {
+                var actual = CalculateOutput(input.GetRow(i), weights);
+                var expected = outputs[i];
+
+                if (expected != actual)
+                {
+                    if (expected == 1)
+                        countWrongOnes++;
+                    else
+                        countWrongZeros++;
+                }
+            }
+
+            Console.WriteLine($"Results: total mistake={countWrongZeros+countWrongOnes}-{(countWrongZeros+ countWrongOnes) / (double)outputs.Length}%," +
+                              $" wrong zeros number={countWrongZeros}-{countWrongZeros / (double)countExpectedZeros}%," +
+                              $" wrong ones number={countWrongOnes}-{countWrongOnes / (double)countExpectedOnes}%");
         }
 
         private static double[] TrainPerceptron()
         {
-            var input = ReadData(TrainFile, out var outputs);
+            var input = ReadData(TrainFile, TrainSamples, out var outputs);
             var weights = RandomWeights(Neurons + 1);
 
             double totalError = 1;
             var iteration = 1;
             while (totalError > 0.2)
             {
-                if (iteration > 100 * Samples)
+                if (iteration > 100 * TrainSamples)
                     break;
 
                 totalError = 0;
-                for (var i = 0; i < Samples; i++)
+                for (var i = 0; i < TrainSamples; i++)
                 {
                     var iRow = input.GetRow(i);
                     var output = CalculateOutput(iRow, weights);
@@ -61,10 +99,6 @@ namespace BasicPerceptron
                 iteration++;
             }
 
-            Console.WriteLine("Results:");
-            for (var i = 0; i < Samples; i++)
-                Console.WriteLine(CalculateOutput(input.GetRow(i), weights));
-
             return weights;
         }
 
@@ -80,12 +114,12 @@ namespace BasicPerceptron
             return weights;
         }
 
-        private static int[,] ReadData(string path, out int[] outputs)
+        private static int[,] ReadData(string path, int count, out int[] outputs)
         {
             var trainingSet = File.ReadAllLines(path);
 
-            var input = new int[Samples, Neurons];
-            outputs = new int[Samples];
+            var input = new int[count, Neurons];
+            outputs = new int[count];
             for (var index = 0; index < trainingSet.Length; index++)
             {
                 var splintedLine = trainingSet[index].Split(" ");
@@ -106,10 +140,10 @@ namespace BasicPerceptron
         {
             var samplesGenerator = new SamplesGenerator(Neurons);
 
-            if (!File.Exists(TrainFile))
-                samplesGenerator.GenerateSet(Samples, TrainFile);
-            if (!File.Exists(TestFile))
-                samplesGenerator.GenerateSet(Samples, TestFile);
+            if (OverrideSamples || !File.Exists(TrainFile))
+                samplesGenerator.GenerateSet(TrainSamples, TrainFile);
+            if (OverrideSamples || !File.Exists(TestFile))
+                samplesGenerator.GenerateSet(TestSamples, TestFile);
         }
 
         private static int CalculateOutput(IEnumerable<int> inputs, IReadOnlyList<double> weights)
