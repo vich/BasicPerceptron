@@ -7,12 +7,17 @@ namespace BasicPerceptron
 {
     class Program
     {
+
+        #region Members
+
         private const string TrainFile = "Train.txt";
         private const string TestFile = "Test.txt";
         private const int Samples = 100;
         private const int Neurons = 21;
         private const double LearningRate = 0.1;
         private const int Bias = 1;
+
+        #endregion Members
 
 
         static void Main(string[] args)
@@ -40,7 +45,6 @@ namespace BasicPerceptron
                 {
                     var iRow = input.GetRow(i);
                     var output = CalculateOutput(iRow, weights);
-
                     var error = outputs[i] - output;
 
                     for (var j = 0; j < Neurons; j++)

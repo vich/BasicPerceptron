@@ -6,24 +6,36 @@ namespace BasicPerceptron
 {
     public class SamplesGenerator
     {
-        private readonly int _bitsCount;
+        #region Members
+
         private readonly int _minimum;
         private readonly int _maximum;
-        private readonly Random _random ;
+        private readonly Random _random;
+
+        #endregion Members
+
+        #region Constructor
 
         public SamplesGenerator(int bitCount, int minimum = 0)
         {
-            _bitsCount = bitCount;
             _minimum = minimum;
-            _maximum = (int) Math.Pow(2, _bitsCount);
+            _maximum = (int) Math.Pow(2, bitCount);
             _random = new Random();
         }
-        
+
+        #endregion Constructor
+
+        #region Public Methods
+
         public void GenerateSet(int count, string fileName)
         {
             var trainList = GenerateRandomList(count);
             WriteToFile(trainList, fileName);
         }
+
+        #endregion Public Methods
+
+        #region Private Methods
 
         private static void WriteToFile(IEnumerable<(int, bool)> data, string trainFile)
         {
@@ -43,27 +55,11 @@ namespace BasicPerceptron
             for (var i = 0; i < count; i++)
             {
                 var randomNumber = _random.Next(_minimum, _maximum);
-                var mostlyOnes = MostlyOnes(randomNumber);
+                var mostlyOnes = Utils.MostlyOnes(randomNumber);
                 yield return (randomNumber, mostlyOnes);
             }
         }
 
-        private bool MostlyOnes(int num)
-        {
-            var ones = CountSetBits(num);
-            return ones > (_bitsCount + 1) / 2;
-        }
-
-        private static int CountSetBits(int n)
-        {
-            var count = 0;
-            while (n > 0)
-            {
-                count += n & 1;
-                n >>= 1;
-            }
-
-            return count;
-        }
+        #endregion Private Methods
     }
 }
