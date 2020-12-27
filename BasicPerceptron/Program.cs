@@ -9,10 +9,12 @@ namespace BasicPerceptron
     {
         private const string TrainFile = "Train.txt";
         private const string TestFile = "Test.txt";
-        private const int Samples = 1000;
+        private const int Samples = 10000;
         private const int Neurons = 21;
-        private const double LearningRate = 1;
-        
+        private const double LearningRate = 0.1;
+        private const int Bias = 1;
+
+
         static void Main(string[] args)
         {
             GenerateSamples();
@@ -42,7 +44,7 @@ namespace BasicPerceptron
             }
 
             var random = new Random();
-            var weights = new double[Neurons];
+            var weights = new double[Neurons + 1];
             for (var i = 0; i < Neurons; i++)
             {
                 weights[i] = random.NextDouble();
@@ -52,13 +54,14 @@ namespace BasicPerceptron
             var iteration = 1;
             while (totalError > 0.2)
             {
-                if (iteration > 10000)
+                if (iteration > 100 * Samples)
                     break;
 
                 totalError = 0;
                 for (var i = 0; i < Samples; i++)
                 {
-                    var output = CalculateOutput(input.GetRow(i), weights);
+                    var iRow = input.GetRow(i);
+                    var output = CalculateOutput(iRow, weights);
 
                     var error = outputs[i] - output;
 
@@ -67,10 +70,13 @@ namespace BasicPerceptron
                         weights[j] += LearningRate * error * input[i, j];
                     }
 
+                    weights[^1] += LearningRate * error * Bias;
+
                     totalError += Math.Abs(error);
-                    Console.WriteLine($"iteration={iteration++}, totalError={totalError}");
                 }
 
+                Console.WriteLine($"iteration={iteration}, totalError={totalError}");
+                iteration++;
             }
 
             Console.WriteLine("Results:");
@@ -84,15 +90,16 @@ namespace BasicPerceptron
         {
             var samplesGenerator = new SamplesGenerator(Neurons);
 
-            if (!File.Exists(TrainFile))
+            //if (!File.Exists(TrainFile))
                 samplesGenerator.GenerateSet(Samples, TrainFile);
-            if (!File.Exists(TestFile))
+            //if (!File.Exists(TestFile))
                 samplesGenerator.GenerateSet(Samples, TestFile);
         }
 
         private static int CalculateOutput(IEnumerable<int> inputs, IReadOnlyList<double> weights)
         {
-            var sum = inputs.Select((t, i) => t * weights[i]).Sum();
+            var sum = weights[^1] * Bias + inputs.Select((t, i) => t * weights[i]).Sum();
+
             return (sum >= 0) ? 1 : 0;
         }
     }
