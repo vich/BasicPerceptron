@@ -15,16 +15,18 @@ namespace BasicPerceptron
         
         static void Main(string[] args)
         {
-            SamplesGenerator samplesGenerator = new SamplesGenerator(Neurons);
-            
-            if(!File.Exists(TrainFile))
-                samplesGenerator.GenerateSet(Samples, TrainFile);
-            if(!File.Exists(TestFile))
-                samplesGenerator.GenerateSet(Samples, TestFile);
+            GenerateSamples();
+            var trainedWeights = TrainPerceptron();
 
+
+            Console.ReadLine();
+        }
+
+        private static double[] TrainPerceptron()
+        {
             var trainingSet = File.ReadAllLines(TrainFile);
 
-            var input = new int[Samples,Neurons];
+            var input = new int[Samples, Neurons];
             var outputs = new int[Samples];
             for (var index = 0; index < trainingSet.Length; index++)
             {
@@ -75,8 +77,17 @@ namespace BasicPerceptron
             for (var i = 0; i < Neurons; i++)
                 Console.WriteLine(CalculateOutput(input.GetRow(i), weights));
 
-            Console.ReadLine();
+            return weights;
+        }
 
+        private static void GenerateSamples()
+        {
+            var samplesGenerator = new SamplesGenerator(Neurons);
+
+            if (!File.Exists(TrainFile))
+                samplesGenerator.GenerateSet(Samples, TrainFile);
+            if (!File.Exists(TestFile))
+                samplesGenerator.GenerateSet(Samples, TestFile);
         }
 
         private static int CalculateOutput(IEnumerable<int> inputs, IReadOnlyList<double> weights)
