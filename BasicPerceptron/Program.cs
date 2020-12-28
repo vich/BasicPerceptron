@@ -69,7 +69,7 @@ namespace BasicPerceptron
         private static double[] TrainPerceptron()
         {
             var input = ReadData(TrainFile, TrainSamples, out var outputs);
-            var weights = RandomWeights(Neurons + 1);
+            var weights = RandomWeights(Neurons + 1); //+1 for bias
 
             double totalError = 1;
             var iteration = 1;
@@ -148,7 +148,15 @@ namespace BasicPerceptron
 
         private static int CalculateOutput(IEnumerable<int> inputs, IReadOnlyList<double> weights)
         {
-            var sum = weights[^1] * Bias + inputs.Select((t, i) => t * weights[i]).Sum();
+            /*var sum = weights[^1] * Bias;
+            //dot product
+            for (var index = 0; index < inputs.Count; index++)
+            {
+                var input = inputs[index];
+                sum += input * weights[index];
+            }*/
+            
+            var sum = weights[^1] * Bias + inputs.Select((input, index) => input * weights[index]).Sum();
 
             return (sum >= 0) ? 1 : 0;
         }
