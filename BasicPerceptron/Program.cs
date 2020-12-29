@@ -20,20 +20,29 @@ namespace BasicPerceptron
         private static int _trainSamples = 70;
         private static int _testSamples = 1_000_000;
         private static double _learningRate = 0.5;
-        private static int _bias = 0;
+        private static int _bias = 1;
         private static bool _overrideSamples = true;
 
         #endregion Members
 
         static void Main(string[] args)
         {
-            ReadParamsFromUser();
+            var loop = true;
+            while (loop)
+            {
+                ReadParamsFromUser();
 
-            if(_overrideSamples)
-                GenerateSamples();
+                if (_overrideSamples)
+                    GenerateSamples();
 
-            var trainedWeights = TrainPerceptron();
-            TestPerceptron(trainedWeights);
+                var trainedWeights = TrainPerceptron();
+                TestPerceptron(trainedWeights);
+
+                Console.WriteLine($"Run again (0=false, otherwise true)");
+                int.TryParse(Console.ReadLine(), out var again );
+                loop = again != 0;
+            }
+
 
             Console.ReadLine();
         }
