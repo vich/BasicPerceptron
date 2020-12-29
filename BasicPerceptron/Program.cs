@@ -29,7 +29,9 @@ namespace BasicPerceptron
         {
             ReadParamsFromUser();
 
-            GenerateSamples();
+            if(_overrideSamples)
+                GenerateSamples();
+
             var trainedWeights = TrainPerceptron();
             TestPerceptron(trainedWeights);
 
@@ -214,10 +216,8 @@ namespace BasicPerceptron
         {
             var samplesGenerator = new SamplesGenerator(Neurons);
 
-            if (_overrideSamples || !File.Exists(TrainFile))
-                samplesGenerator.GenerateSet(_trainSamples, TrainFile);
-            if (_overrideSamples || !File.Exists(TestFile))
-                samplesGenerator.GenerateSet(_testSamples, TestFile);
+            samplesGenerator.GenerateSet(_trainSamples, TrainFile);
+            samplesGenerator.GenerateSet(_testSamples, TestFile);
         }
     }
 }
