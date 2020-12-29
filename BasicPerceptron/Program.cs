@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
+//https://en.wikipedia.org/wiki/Perceptron
 namespace BasicPerceptron
 {
     class Program
@@ -15,7 +18,7 @@ namespace BasicPerceptron
         private const int Neurons = 21;
 
         private static int _trainSamples = 100;
-        private static int _testSamples = 1000000;
+        private static int _testSamples = 1_000_000;
         private static double _learningRate = 0.1;
         private static int _bias = 1;
         private static bool _overrideSamples = true;
@@ -70,6 +73,8 @@ namespace BasicPerceptron
 
         private static void TestPerceptron(double[] weights)
         {
+            Console.WriteLine("---------------------");
+            Console.WriteLine($"Start {nameof(TestPerceptron)}");
             var input = ReadData(TestFile, _testSamples, out var outputs);
 
             var countWrongZeros = 0;
@@ -99,19 +104,34 @@ namespace BasicPerceptron
                 }
             }
 
-            Console.WriteLine($"Results: total mistake={countWrongZeros+countWrongOnes}-{(countWrongZeros+ countWrongOnes) / (double)outputs.Length}%," +
-                              $" wrong zeros number={countWrongZeros}-{countWrongZeros / (double)countExpectedZeros}%," +
-                              $" wrong ones number={countWrongOnes}-{countWrongOnes / (double)countExpectedOnes}%");
+            var sb = new StringBuilder();
+            sb.Append("weights: ");
+            for (var index = 0; index < weights.Length; index++)
+            {
+                var weight = weights[index];
+                if (index == weights.Length - 1)
+                    sb.Append("Bias");
+                sb.Append($"[{index}]-{weight}; ");
+            }
+
+            Console.WriteLine(sb);
+            Console.WriteLine();
+            Console.WriteLine($"Results: total mistake={countWrongZeros+countWrongOnes}-{100 * (countWrongZeros + countWrongOnes) / (double)outputs.Length}%," +
+                              $" wrong zeros number={countWrongZeros}-{100 * countWrongZeros / (double)countExpectedZeros}%," +
+                              $" wrong ones number={countWrongOnes}-{100 * countWrongOnes / (double)countExpectedOnes}%");
         }
 
         private static double[] TrainPerceptron()
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            
             var input = ReadData(TrainFile, _trainSamples, out var outputs);
-            var weights = RandomWeights(Neurons + 1);
+            var weights = RandomWeights(Neurons + 1); //+1 for bias
 
             double totalError = 1;
             var iteration = 1;
-            while (totalError > 0.2)
+            while (totalError > 0.01)
             {
                 if (iteration > 100 * _trainSamples)
                     break;
@@ -137,6 +157,7 @@ namespace BasicPerceptron
                 iteration++;
             }
 
+            Console.WriteLine($"Training finished, stop watch={stopWatch.ElapsedMilliseconds} milliseconds");
             return weights;
         }
 
@@ -186,7 +207,15 @@ namespace BasicPerceptron
 
         private static int CalculateOutput(IEnumerable<int> inputs, IReadOnlyList<double> weights)
         {
-            var sum = weights[^1] * _bias + inputs.Select((t, i) => t * weights[i]).Sum();
+            /*var sum = weights[^1] * Bias;
+            //dot product
+            for (var index = 0; index < inputs.Count; index++)
+            {
+                var input = inputs[index];
+                sum += input * weights[index];
+            }*/
+            
+            var sum = weights[^1] * _bias + inputs.Select((input, index) => input * weights[index]).Sum();
 
             return (sum >= 0) ? 1 : 0;
         }
