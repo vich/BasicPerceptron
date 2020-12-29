@@ -12,17 +12,20 @@ namespace BasicPerceptron
 
         private const string TrainFile = "Train.txt";
         private const string TestFile = "Test.txt";
-        private const int TrainSamples = 100;
-        private const int TestSamples = 1000000;
         private const int Neurons = 21;
-        private const double LearningRate = 0.1;
-        private const int Bias = 1;
-        private const bool OverrideSamples = true;
+
+        private static int _trainSamples = 100;
+        private static int _testSamples = 1000000;
+        private static double _learningRate = 0.1;
+        private static int _bias = 1;
+        private static bool _overrideSamples = true;
 
         #endregion Members
-        
+
         static void Main(string[] args)
         {
+            ReadParamsFromUser();
+
             GenerateSamples();
             var trainedWeights = TrainPerceptron();
             TestPerceptron(trainedWeights);
@@ -30,9 +33,44 @@ namespace BasicPerceptron
             Console.ReadLine();
         }
 
+        private static void ReadParamsFromUser()
+        {
+            try
+            {
+                Console.WriteLine(
+                    $"Init Values: {nameof(_trainSamples)}={_trainSamples},{nameof(_testSamples)}={_testSamples}, " +
+                    $"{nameof(_learningRate)}={_learningRate}, {nameof(_bias)}={_bias}, " +
+                    $"{nameof(_overrideSamples)}={_overrideSamples}");
+
+                Console.WriteLine($"Use custom parameters (0=false, otherwise true)");
+                var customParams = int.Parse(Console.ReadLine());
+
+                if (customParams != 0)
+                {
+                    Console.WriteLine($"Enter number of train samples (int)");
+                    _trainSamples = int.Parse(Console.ReadLine());
+                    Console.WriteLine($"Enter number of test samples (int)");
+                    _testSamples = int.Parse(Console.ReadLine());
+                    Console.WriteLine($"Enter learning rate (double)");
+                    _learningRate = double.Parse(Console.ReadLine());
+                    Console.WriteLine($"Use Bias (0=false, otherwise true)");
+                    _bias = int.Parse(Console.ReadLine()) == 0 ? 0 : 1;
+                    Console.WriteLine($"Override samples (0=false, otherwise true)");
+                    _overrideSamples = int.Parse(Console.ReadLine()) == 0;
+                }
+            }
+            catch
+            {
+                Console.WriteLine(
+                    $"Init Values: {nameof(_trainSamples)}={_trainSamples},{nameof(_testSamples)}={_testSamples}, " +
+                    $"{nameof(_learningRate)}={_learningRate}, {nameof(_bias)}={_bias}, " +
+                    $"{nameof(_overrideSamples)}={_overrideSamples}");
+            }
+        }
+
         private static void TestPerceptron(double[] weights)
         {
-            var input = ReadData(TestFile, TestSamples, out var outputs);
+            var input = ReadData(TestFile, _testSamples, out var outputs);
 
             var countWrongZeros = 0;
             var countWrongOnes = 0;
@@ -47,7 +85,7 @@ namespace BasicPerceptron
                     countExpectedZeros++;
             }
 
-            for (var i = 0; i < TestSamples; i++)
+            for (var i = 0; i < _testSamples; i++)
             {
                 var actual = CalculateOutput(input.GetRow(i), weights);
                 var expected = outputs[i];
@@ -68,18 +106,18 @@ namespace BasicPerceptron
 
         private static double[] TrainPerceptron()
         {
-            var input = ReadData(TrainFile, TrainSamples, out var outputs);
+            var input = ReadData(TrainFile, _trainSamples, out var outputs);
             var weights = RandomWeights(Neurons + 1);
 
             double totalError = 1;
             var iteration = 1;
             while (totalError > 0.2)
             {
-                if (iteration > 100 * TrainSamples)
+                if (iteration > 100 * _trainSamples)
                     break;
 
                 totalError = 0;
-                for (var i = 0; i < TrainSamples; i++)
+                for (var i = 0; i < _trainSamples; i++)
                 {
                     var iRow = input.GetRow(i);
                     var output = CalculateOutput(iRow, weights);
@@ -87,10 +125,10 @@ namespace BasicPerceptron
 
                     for (var j = 0; j < Neurons; j++)
                     {
-                        weights[j] += LearningRate * error * input[i, j];
+                        weights[j] += _learningRate * error * input[i, j];
                     }
 
-                    weights[^1] += LearningRate * error * Bias;
+                    weights[^1] += _learningRate * error * _bias;
 
                     totalError += Math.Abs(error);
                 }
@@ -140,15 +178,15 @@ namespace BasicPerceptron
         {
             var samplesGenerator = new SamplesGenerator(Neurons);
 
-            if (OverrideSamples || !File.Exists(TrainFile))
-                samplesGenerator.GenerateSet(TrainSamples, TrainFile);
-            if (OverrideSamples || !File.Exists(TestFile))
-                samplesGenerator.GenerateSet(TestSamples, TestFile);
+            if (_overrideSamples || !File.Exists(TrainFile))
+                samplesGenerator.GenerateSet(_trainSamples, TrainFile);
+            if (_overrideSamples || !File.Exists(TestFile))
+                samplesGenerator.GenerateSet(_testSamples, TestFile);
         }
 
         private static int CalculateOutput(IEnumerable<int> inputs, IReadOnlyList<double> weights)
         {
-            var sum = weights[^1] * Bias + inputs.Select((t, i) => t * weights[i]).Sum();
+            var sum = weights[^1] * _bias + inputs.Select((t, i) => t * weights[i]).Sum();
 
             return (sum >= 0) ? 1 : 0;
         }
