@@ -17,10 +17,10 @@ namespace BasicPerceptron
         private const string TestFile = "Test.txt";
         private const int Neurons = 21;
 
-        private static int _trainSamples = 100;
+        private static int _trainSamples = 70;
         private static int _testSamples = 1_000_000;
-        private static double _learningRate = 0.1;
-        private static int _bias = 1;
+        private static double _learningRate = 0.5;
+        private static int _bias = 0;
         private static bool _overrideSamples = true;
 
         #endregion Members
@@ -123,6 +123,7 @@ namespace BasicPerceptron
                 sum += input * weights[index];
             }*/
 
+            //bias * weight + dot production 
             var sum = weights[^1] * _bias + inputs.Select((input, index) => input * weights[index]).Sum();
 
             return (sum >= 0) ? 1 : 0;
