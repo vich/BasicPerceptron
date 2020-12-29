@@ -149,6 +149,7 @@ namespace BasicPerceptron
             var countExpectedZeros = 0;
             var countExpectedOnes = 0;
 
+            //calculate statistics
             foreach (var output in outputs)
             {
                 if (output == 1)
@@ -171,21 +172,28 @@ namespace BasicPerceptron
                 }
             }
 
+            PrintStatistic(weights, countWrongZeros, countWrongOnes, outputs, countExpectedZeros, countExpectedOnes);
+        }
+
+        private static void PrintStatistic(IReadOnlyList<double> weights, int countWrongZeros, int countWrongOnes, IReadOnlyCollection<int> outputs,
+            int countExpectedZeros, int countExpectedOnes)
+        {
             var sb = new StringBuilder();
             sb.Append("weights: ");
-            for (var index = 0; index < weights.Length; index++)
+            for (var index = 0; index < weights.Count; index++)
             {
                 var weight = weights[index];
-                if (index == weights.Length - 1)
+                if (index == weights.Count - 1)
                     sb.Append("Bias");
                 sb.Append($"[{index}]-{weight}; ");
             }
 
             Console.WriteLine(sb);
             Console.WriteLine();
-            Console.WriteLine($"Results: total mistake={countWrongZeros + countWrongOnes}-{100 * (countWrongZeros + countWrongOnes) / (double)outputs.Length}%," +
-                              $" wrong zeros number={countWrongZeros}-{100 * countWrongZeros / (double)countExpectedZeros}%," +
-                              $" wrong ones number={countWrongOnes}-{100 * countWrongOnes / (double)countExpectedOnes}%");
+            Console.WriteLine(
+                $"Results: total mistake={countWrongZeros + countWrongOnes}-{100 * (countWrongZeros + countWrongOnes) / (double) outputs.Count}%," +
+                $" wrong zeros number={countWrongZeros}-{100 * countWrongZeros / (double) countExpectedZeros}%," +
+                $" wrong ones number={countWrongOnes}-{100 * countWrongOnes / (double) countExpectedOnes}%");
         }
 
         private static double[] RandomWeights(int neurons)
